@@ -1,0 +1,69 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #cccccc;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.fmxw-500 {
+  max-width: 500px !important;
+}
+
+.login-area {
+  text-align: center;
+}
+
+.login-wrapper {
+  border: 1pt solid #e2e2f8;
+  border-radius: 1em;
+  margin-bottom: 1em;
+}
+.login-header {
+  padding: 1.3em;
+  text-align: center;
+}
+.login-body {
+  padding: 2em;
+}
+.login-area h1 {
+  font-size: 20pt;
+  margin-bottom: .2em;
+  font-weight: 700;
+}
+.login-area p {
+  margin-bottom: 0;
+}
+.login-area .form-control {
+  margin-bottom: 1em;
+}
+.btn-block {
+  display: block;
+  width: 100%;
+  border-radius: 1.3em;
+  color: #fff;
+  font-weight: 700;
+}
+
+.btn-login {
+  background-color: #a24646 !important;
+  color: #fff !important;
+}
+
+.login-page label, .login-page input {
+  text-align: left;
+}
+.login-page input {
+  border: none;
+  border-bottom: 1pt solid #e2e2f8;
+}
+.dashboard {
+  margin-top: 20px;
+}
