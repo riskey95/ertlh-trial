@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, query, updateDoc, where, orderBy } from 'firebase/firestore'
+import { collection, doc, getDocs, query, updateDoc, where, orderBy, limit } from 'firebase/firestore'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { db } from '../firebase'
@@ -101,6 +101,7 @@ function Dashboard() {
             collection(db, 'survey'),
             where('kecamatan', '==', state.input.kecamatan),
 			orderBy('status', 'desc'),
+			//limit(10)
 			//orderBy('status')
         )
 
