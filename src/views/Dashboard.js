@@ -163,7 +163,7 @@ function Dashboard() {
                     disetujui += 1;
                 }
 
-                const {alamat, tanggal, desa, fotoDalamRumah, fotoKtp, fotoSamping, id, jumlahKK, jumlahPenghuni,
+                const {alamat, tanggal, desa, fotoDalamRumah, fotoDepan, fotoSamping, id, jumlahKK, jumlahPenghuni,
                     kecamatan, latitude, longitude, luasRumah, nama, nik, nilai, noKK, nonstruktur_dinding,
                     nonstruktur_lantai, nonstruktur_penutupAtap, penghasilanKK, status, statusPenguasaanLahan,
                     struktur_fondasi, struktur_kolom, struktur_kudaKuda, struktur_ringBalok, struktur_sloof } = doc.data()
@@ -174,7 +174,10 @@ function Dashboard() {
                     alamat: alamat,
                     desa: desa,
                     kecamatan: kecamatan,
-                    status: status
+                    status: status,
+                    noKK: noKK,
+                    latitude: latitude,
+                    longitude: longitude
                 })
 
             })
@@ -185,6 +188,9 @@ function Dashboard() {
                 { label: "Desa", key: "desa" },
                 { label: "Kecamatan", key: "kecamatan" },
                 { label: "NIK", key: "nik" },
+                { label: "Nomor KK", key: "noKK" },
+                { label: "Latitude", key: "latitude" },
+                { label: "Longitude", key: "longitude" },
             ]
 
             const csvReport = {
@@ -520,8 +526,8 @@ function Dashboard() {
                                 <div className='row'>
 								
 								<div className='col-12 col-md-4'>
-                                        <p className='mb-1'><small><strong>Foto KTP</strong></small></p>
-                                        <img src={state.survei[myref.current].foto_ktp} className='img-fluid' />
+                                        <p className='mb-1'><small><strong>Foto Depan</strong></small></p>
+                                        <img src={state.survei[myref.current].foto_depan} className='img-fluid' />
                                     </div>
                                     <div className='col-12 col-md-4'>
                                         <p className='mb-1'><small><strong>Foto Dalam Rumah</strong></small></p>
