@@ -1,14 +1,19 @@
 import { collection, doc, getDoc, getDocs, onSnapshot, query, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react"
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import logo from "../kab_bojonegoro.png";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 function Login() {
 
     const [state, setState] = useState({
         input: {}
     })
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+
+
     const [loginMsg, setLoginMsg] = useState('')
     const navigate = useNavigate()
 
@@ -30,10 +35,37 @@ function Login() {
         }))
     }
 
+    const handleLogin = (e) => {
+        e.preventDefault()
+
+        signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            // Signed in 
+            const user = userCredential.user;
+            const docRef = doc(db, 'users', user.uid);
+            getDoc(docRef).then(docSnap =>{
+                Object.keys(docSnap.data()).map((dockey) => {
+                    localStorage.setItem(dockey, docSnap.data()[dockey])
+                })
+                navigate(`/`)
+            });
+        })
+        .catch((error) => {
+            setLoginMsg("Kombinasi username dan password tidak tepat.")
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.log(errorCode)
+            console.log(errorMessage)
+
+            // ..
+        });
+
+    }
+
     const submit = (e) => {
         setLoginMsg('')
         e.preventDefault();
-        const q = query(collection(db, 'users'), where("email", "==", state.input.email))
+        const q = query(collection(db, 'users'), where("email", "==", email))
         const querySnapshot = getDocs(q);
         querySnapshot.then((docs) => {
             if (docs.empty) {
@@ -62,13 +94,13 @@ function Login() {
                             </div>
                             <div className="mb-4">
                                 <p>{loginMsg}</p>
-                                <form onSubmit={submit}>
+                                <form onSubmit={handleLogin}>
                                     <div className="form-group">
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text"><i className="icon bi-envelope"></i></span>
                                             </div>                                            
-                                            <input name="email" className="form-control" onChange={handleChange} value={state.input.email} />
+                                            <input name="email" className="form-control" onChange={e=>setEmail(e.target.value)} />
                                         </div>
                                     </div>
                                     <div className="form-group">
@@ -76,7 +108,7 @@ function Login() {
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text"><i className="icon bi-key"></i></span>
                                             </div>
-                                            <input type="password" name="password" className="form-control" required onChange={handleChange} value={state.input.password} />
+                                            <input type="password" name="password" className="form-control" required onChange={e=>setPassword(e.target.value)} />
                                         </div>
                                     </div>
                                     <div className="form-group">

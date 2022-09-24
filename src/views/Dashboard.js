@@ -1,14 +1,29 @@
 import { collection, doc, getDocs, query, updateDoc, where, orderBy, limit } from 'firebase/firestore'
+import { signOut } from "firebase/auth";
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { db } from '../firebase'
+import { db,auth } from '../firebase'
 import { MapContainer, TileLayer, useMap, Marker, Popup } from 'react-leaflet';
+import { CSVLink } from "react-csv";
+import Leaflet from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+Leaflet.Icon.Default.imagePath =
+'../node_modules/leaflet'
+
+delete Leaflet.Icon.Default.prototype._getIconUrl;
+
+Leaflet.Icon.Default.mergeOptions({
+    iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+    iconUrl: require('leaflet/dist/images/marker-icon.png'),
+    shadowUrl: require('leaflet/dist/images/marker-shadow.png')
+});
 
 
 function Dashboard() {
 
     const [state, setState] = useState({
-        input: { kecamatan: '', desa: '', field: 'nama', key: '', nama: '', alamat: '' },
+        input: { kecamatan: '', desa: '', field: 'nama', key: '', nama: '', alamat: '', limitdata: 25, status: '' },
         kecamatan: {},
         desa: [],
         survei: {},
@@ -42,6 +57,18 @@ function Dashboard() {
             loadSurvei()
         }
     }, [state.input.kecamatan])
+
+    useEffect(() => {
+        loadSurvei()
+    }, [state.input.limitdata])
+
+    useEffect(() => {
+        loadSurvei()
+    }, [state.input.status])
+
+    useEffect(() => {
+        loadSurvei()
+    }, [state.input.desa])
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -99,20 +126,32 @@ function Dashboard() {
         setLoading(true)
         let q = query(
             collection(db, 'survey'),
-            where('kecamatan', '==', state.input.kecamatan),
-			orderBy('status', 'desc'),
+            // where('kecamatan', '==', state.input.kecamatan),
+			// orderBy('status', 'desc'),
 			//limit(10)
 			//orderBy('status')
         )
 
+        if (state.input.status.length > 0) {
+            q = query(q, where('status', '==', state.input.status), where('kecamatan', '==', state.input.kecamatan))
+        } else {
+            q = query(q, where('kecamatan', '==', state.input.kecamatan), orderBy('status', 'desc'))
+        }
+
+
+
         if (state.input.desa.length > 0) q = query(q, where('desa', '==', state.input.desa))
         // if (state.input.field.length > 0) q = query(q, where(state.input.field, '>=', state.input.key), where(state.input.field, '<=', state.input.key + '\uf8ff'))
-        if (state.input.nama.length > 0) q = query(q, where('nama', '>=', state.input.nama), where('nama', '<=', state.input.nama + '\uf8ff'))
-        if (state.input.alamat.length > 0) q = query(q, where('alamat', '>=', state.input.alamat), where('alamat', '<=', state.input.alamat + '\uf8ff'))
+        // if (state.input.nama.length > 0) q = query(q, where('nama', '>=', state.input.nama), where('nama', '<=', state.input.nama + '\uf8ff'))
+        // if (state.input.alamat.length > 0) q = query(q, where('alamat', '>=', state.input.alamat), where('alamat', '<=', state.input.alamat + '\uf8ff'))
+        if (Number(state.input.status.length) > 0) q = query(q, where('status', '==', state.input.status))
+        if (Number(state.input.limitdata) > 0) q = query(q, limit(Number(state.input.limitdata)))
+        
 
         const querySnapshot = getDocs(q);
         querySnapshot.then((docs) => {
             let datas = {}
+            let list = []
             let disetujui = 0, ditolak = 0, usulan = 0;
 
             docs.forEach((doc) => {
@@ -123,7 +162,38 @@ function Dashboard() {
                 } else if (doc.data().status === 'Disetujui') {
                     disetujui += 1;
                 }
+
+                const {alamat, tanggal, desa, fotoDalamRumah, fotoKtp, fotoSamping, id, jumlahKK, jumlahPenghuni,
+                    kecamatan, latitude, longitude, luasRumah, nama, nik, nilai, noKK, nonstruktur_dinding,
+                    nonstruktur_lantai, nonstruktur_penutupAtap, penghasilanKK, status, statusPenguasaanLahan,
+                    struktur_fondasi, struktur_kolom, struktur_kudaKuda, struktur_ringBalok, struktur_sloof } = doc.data()
+
+                list.push({
+                    nama: nama,
+                    nik: nik,
+                    alamat: alamat,
+                    desa: desa,
+                    kecamatan: kecamatan,
+                    status: status
+                })
+
             })
+            console.log(list)
+            const header_csv = [
+                { label: "Nama", key: "nama" },
+                { label: "Alamat", key: "alamat" },
+                { label: "Desa", key: "desa" },
+                { label: "Kecamatan", key: "kecamatan" },
+                { label: "NIK", key: "nik" },
+            ]
+
+            const csvReport = {
+                filename: "userReport.csv",
+                headers: header_csv,
+                data: list,
+              };
+            setDataReport(csvReport);
+
             setState(prevState => ({
                 ...prevState,
                 survei: datas,
@@ -133,8 +203,8 @@ function Dashboard() {
             }))
             setLoading(false)
         }).catch((error) => {
-  console.error(error);
-});
+            console.error(error);
+        });
     }
 
 
@@ -175,12 +245,14 @@ function Dashboard() {
     }
 
     const handleLogout = () => {
-        localStorage.removeItem('uid')
-        localStorage.removeItem('kecamatan')
-        setTimeout(() => {
-            navigate(`/login`)
-        }, 1400)
-
+        signOut(auth).then(() => {
+            localStorage.clear()
+            setTimeout(() => {
+                navigate(`/login`)
+            }, 1400)
+          }).catch((error) => {
+            // An error happened.
+          });
     }
 
     const isVerifikator = () => {
@@ -200,6 +272,24 @@ function Dashboard() {
         makeCsv(row, "Export E RTLH Kab Bojonegoro.csv")
 
     }
+
+    const [dataReport, setDataReport] = useState({
+        filename: "userReport.csv",
+        headers: [],
+        data: [],
+    });
+
+    const headers = [
+        { label: "First Name", key: "firstname" },
+        { label: "Last Name", key: "lastname" },
+        { label: "Email", key: "email" }
+      ];
+      
+    const  data = [
+        { firstname: "Ahmed", lastname: "Tomi", email: "ah@smthing.co.com" },
+        { firstname: "Raed", lastname: "Labes", email: "rl@smthing.co.com" },
+        { firstname: "Yezzi", lastname: "Min l3b", email: "ymin@cocococo.com" }
+      ];
 
 
     const makeCsv = async (rows, filename) => {
@@ -286,12 +376,14 @@ function Dashboard() {
                         <form onSubmit={submit}>
                             <div className='form-group row'>
                                 <div className='col-12 col-md-2'>
-                                    <input placeholder='Input nama...' name="nama" className="form-control" onChange={handleChange} value={state.input.nama} />
+                                    <select name='limitdata' className="form-control form-select" onChange={handleChange} value={state.input.limitdata}>
+                                        <option value="25">25 Data</option>
+                                        <option value="50">50 Data</option>
+                                        <option value="100">100 Data</option>
+                                        <option value="0">Semua</option>
+                                    </select>
                                 </div>
                                 <div className='col-12 col-md-2'>
-                                    <input placeholder='Input alamat...' name="alamat" className="form-control" onChange={handleChange} value={state.input.alamat} />
-                                </div>
-                                <div className='col-12 col-md-3'>
                                     <select name='kecamatan' className="form-control form-select" onChange={handleChange} value={state.input.kecamatan}>
                                         <option value="">- pilih kecamatan -</option>
                                         {
@@ -311,10 +403,17 @@ function Dashboard() {
                                         }
                                     </select>
                                 </div>
-                                <div className='col-12 col-md-1'>
+                                <div className='col-12 col-md-2'>
+                                    <select name='status' className="form-control form-select" onChange={handleChange} value={state.input.status}>
+                                        <option value="">- status usulan -</option>
+                                        <option value="Sudah Diupload">Sudah Diupload</option>
+                                        <option value="Disetujui">Disetujui</option>
+                                        <option value="Ditolak">Ditolak</option>
+                                    </select>
+                                </div>
+                                <div className='col-12 col-md-3'>
                                     <div className='d-flex'>
-                                        <button type='submit' className='btn btn-warning'><i className='icon bi-filter'></i></button>
-                                        <button onClick={downloadTable} className='ms-2 btn btn-info'><i className='icon bi-download'></i></button>
+                                        <CSVLink {...dataReport} className='ms-2 btn btn-info'><i className='icon bi-download'></i> Export Data</CSVLink>
                                     </div>
                                 </div>
                             </div>
@@ -323,7 +422,7 @@ function Dashboard() {
                     </div>
                 </div>
                 <div className='card mb-3'>
-                    <div className='card-body'>
+                    <div className='card-body col-auto'>
                         {
                             loading && <p>Loading data survey....</p>
                         }
@@ -335,7 +434,7 @@ function Dashboard() {
                                         <th>NIK</th>
                                         <th>Desa</th>
                                         <th>Alamat</th>
-                                        <th>Status</th>
+                                        <th style={{textAlign: "center"}}>Status</th>
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
@@ -349,7 +448,17 @@ function Dashboard() {
                                                     <td>{state.survei[key].nik}</td>
                                                     <td>{state.survei[key].desa}</td>
                                                     <td>{state.survei[key].alamat}</td>
-                                                    <td>{state.survei[key].status}</td>
+                                                    <td style={{textAlign: "center"}}>
+                                                        { state.survei[key].status == 'Sudah Diupload' &&
+                                                        <span class="badge text-bg-primary">{state.survei[key].status}</span>
+                                                        }
+                                                        { state.survei[key].status == 'Disetujui' &&
+                                                        <span class="badge text-bg-success">{state.survei[key].status}</span>
+                                                        }
+                                                        { state.survei[key].status == 'Ditolak' &&
+                                                        <span class="badge text-bg-danger">{state.survei[key].status}</span>
+                                                        }
+                                                    </td>
                                                     <td><button onClick={openModal} data-id={key} className='btn btn-outline-primary btn-sm'><i className='icon bi-search'></i> Detail</button></td>
                                                 </tr>
                                             })
@@ -368,10 +477,11 @@ function Dashboard() {
                         <div className="modal-content">
                             <div className="modal-header bg-dark text-light">
                                 <h4 className="modal-title">Detail Usulan</h4>
+                                <button type="button" className="btn btn-outline-warning" data-dismiss="modal" onClick={() => setShowModal(false)}>Close</button>
                             </div>
                             <div className="modal-body">
                                 <div className='row'>
-                                    <div className='col-12 col-md-3'>
+                                    <div className='col-12 col-md-2'>
                                         <p className='mb-1'><small><strong>Nama</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].nama}</p>
                                         <p className='mb-1'><small><strong>NIK</strong></small></p>
@@ -379,7 +489,7 @@ function Dashboard() {
                                         <p className='mb-1'><small><strong>No KK</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].noKK}</p>
                                     </div>
-                                    <div className='col-12 col-md-3'>
+                                    <div className='col-12 col-md-2'>
                                         <p className='mb-1'><small><strong>Jml KK</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].jumlahKK}</p>
                                         <p className='mb-1'><small><strong>Jml Penghuni</strong></small></p>
@@ -387,7 +497,7 @@ function Dashboard() {
 										<p className='mb-1'><small><strong>Penilaian Sistem</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].nilai}</p>
                                     </div>
-                                    <div className='col-12 col-md-3'>
+                                    <div className='col-12 col-md-2'>
                                         <p className='mb-1'><small><strong>Alamat</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].alamat}</p>
                                         <p className='mb-1'><small><strong>Desa</strong></small></p>
@@ -395,15 +505,21 @@ function Dashboard() {
                                         <p className='mb-1'><small><strong>Kecamatan</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].kecamatan}</p>
                                     </div>
-                                    <div className='col-12 col-md-3'>
-										<p className='mb-1'><small><strong>Lat</strong></small></p>
-                                        <p className='mb-1'>{state.survei[myref.current].latitude}</p>
-                                        <p className='mb-1'><small><strong>Lng</strong></small></p>
-                                        <p className='mb-1'>{state.survei[myref.current].longitude}</p>
+                                    <div className='col-12 col-md-6'>
+										<p className='mb-1'><small><strong>Lokasi</strong></small></p>
+										<MapContainer center={[state.survei[myref.current].latitude, state.survei[myref.current].longitude]} zoom={14} scrollWheelZoom={false} style={{height: '250px', width: '100%'}}>
+											<TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+											<Marker position={[state.survei[myref.current].latitude, state.survei[myref.current].longitude]}>
+												<Popup>
+													Lokasi Usulan Penerima
+												</Popup>
+											</Marker>
+										</MapContainer>
                                     </div>
                                 </div>
                                 <div className='row'>
-                                    <div className='col-12 col-md-4'>
+								
+								<div className='col-12 col-md-4'>
                                         <p className='mb-1'><small><strong>Foto KTP</strong></small></p>
                                         <img src={state.survei[myref.current].foto_ktp} className='img-fluid' />
                                     </div>
@@ -423,9 +539,9 @@ function Dashboard() {
                                 </div>
                             </div>
                             <div className="modal-footer justify-content-between bg-dark">
+                                <div></div>
                                 {
                                     !showConfirmAction && <>
-                                        <button type="button" className="btn btn-outline-warning" data-dismiss="modal" onClick={() => setShowModal(false)}>Close</button>
                                         {
                                             isVerifikator()
                                             && <>
@@ -450,8 +566,8 @@ function Dashboard() {
                                     showConfirmAction && isVerifikator && <>
                                         <p>Yakin akan <strong>{action ? <span className='text-primary h3'>Disetujui</span> : <span className='text-danger h3'>Ditolak</span>}</strong> usulan ini?</p>
                                         <div>
-                                            <button type="button" className="btn btn-success" onClick={submitStatus}>Ya, Simpan</button>
-                                            <button type="button" className="btn btn-outline-info ms-2" data-dismiss="modal" onClick={() => { setShowConfirmAction(false); setShowModal(false) }}>Batal</button>
+                                            <button type="button" className="btn btn-success" onClick={() =>{submitStatus(); setShowConfirmAction(false)}}>Ya, Simpan</button>
+                                            <button type="button" className="btn btn-outline-info ms-2" data-dismiss="modal" onClick={() => { setShowConfirmAction(false); setShowModal(true) }}>Batal</button>
 
                                         </div>
                                     </>
