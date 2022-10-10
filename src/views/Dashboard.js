@@ -268,70 +268,12 @@ function Dashboard() {
         return false
     }
 
-    const downloadTable = () => {
-        let row = [];
-        Object
-            .keys(state.survei)
-            .map((key) => {
-                row.push(state.survei[key])
-            })
-        makeCsv(row, "Export E RTLH Kab Bojonegoro.csv")
-
-    }
-
     const [dataReport, setDataReport] = useState({
         filename: "userReport.csv",
         headers: [],
         data: [],
+        separator: ";"
     });
-
-    const headers = [
-        { label: "First Name", key: "firstname" },
-        { label: "Last Name", key: "lastname" },
-        { label: "Email", key: "email" }
-      ];
-      
-    const  data = [
-        { firstname: "Ahmed", lastname: "Tomi", email: "ah@smthing.co.com" },
-        { firstname: "Raed", lastname: "Labes", email: "rl@smthing.co.com" },
-        { firstname: "Yezzi", lastname: "Min l3b", email: "ymin@cocococo.com" }
-      ];
-
-
-    const makeCsv = async (rows, filename) => {
-        const separator = ';';
-        const keys = Object.keys(rows[0]);
-
-        const csvContent = `${keys.join(separator)}\n${rows.map((row) => keys.map((k) => {
-            let cell = row[k] === null || row[k] === undefined ? '' : row[k];
-
-            cell = cell instanceof Date
-                ? cell.toLocaleString()
-                : cell.toString().replace(/"/g, '""');
-
-            if (cell.search(/("|,|\n)/g) >= 0) {
-                cell = `"${cell}"`;
-            }
-            return cell;
-        }).join(separator)).join('\n')}`;
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        if (navigator.msSaveBlob) { // In case of IE 10+
-            navigator.msSaveBlob(blob, filename);
-        } else {
-            const link = document.createElement('a');
-            if (link.download !== undefined) {
-                // Browsers that support HTML5 download attribute
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', filename);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-        }
-    };
 
     return (
         <div className='dashboard'>
@@ -530,8 +472,8 @@ function Dashboard() {
                                         <img src={state.survei[myref.current].foto_depan} className='img-fluid' />
                                     </div>
                                     <div className='col-12 col-md-4'>
-                                        <p className='mb-1'><small><strong>Foto Dalam Rumah</strong></small></p>
-                                        <img src={state.survei[myref.current].foto_dalamRumah} className='img-fluid' />
+                                        {/* <p className='mb-1'><small><strong>Foto Dalam Rumah</strong></small></p>
+                                        <img src={state.survei[myref.current].foto_dalamRumah} className='img-fluid' /> */}
                                     </div>
                                     <div className='col-12 col-md-4'>
                                         <p className='mb-1'><small><strong>Foto Samping</strong></small></p>
