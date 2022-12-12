@@ -429,7 +429,7 @@ function Dashboard() {
                             </div>
                             <div className="modal-body">
                                 <div className='row'>
-                                    <div className='col-12 col-md-2'>
+                                    <div className='col-12 col-md-3'>
                                         <p className='mb-1'><small><strong>Nama</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].nama}</p>
                                         <p className='mb-1'><small><strong>NIK</strong></small></p>
@@ -445,7 +445,7 @@ function Dashboard() {
 										<p className='mb-1'><small><strong>Penilaian Sistem</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].nilai}</p>
                                     </div>*/}
-                                    <div className='col-12 col-md-2'>
+                                    <div className='col-12 col-md-3'>
                                         <p className='mb-1'><small><strong>Alamat</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].alamat}</p>
                                         <p className='mb-1'><small><strong>Desa</strong></small></p>
@@ -467,7 +467,7 @@ function Dashboard() {
                                 </div>
                                 <div className='row'>
 								
-								<div className='col-12 col-md-6'>
+								<div className='col-12 col-md-12'>
                                         <p className='mb-1'><small><strong>Foto Depan</strong></small></p>
                                         <img src={state.survei[myref.current].foto_depan} className='img-fluid' />
                                     </div>
