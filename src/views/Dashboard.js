@@ -437,14 +437,14 @@ function Dashboard() {
                                         <p className='mb-1'><small><strong>No KK</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].noKK}</p>
                                     </div>
-                                    <div className='col-12 col-md-2'>
+                                    {/*<div className='col-12 col-md-2'>
                                         <p className='mb-1'><small><strong>Jml KK</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].jumlahKK}</p>
                                         <p className='mb-1'><small><strong>Jml Penghuni</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].jumlahPenghuni}</p>
 										<p className='mb-1'><small><strong>Penilaian Sistem</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].nilai}</p>
-                                    </div>
+                                    </div>*/}
                                     <div className='col-12 col-md-2'>
                                         <p className='mb-1'><small><strong>Alamat</strong></small></p>
                                         <p className='mb-1'>{state.survei[myref.current].alamat}</p>
@@ -467,18 +467,18 @@ function Dashboard() {
                                 </div>
                                 <div className='row'>
 								
-								<div className='col-12 col-md-4'>
+								<div className='col-12 col-md-6'>
                                         <p className='mb-1'><small><strong>Foto Depan</strong></small></p>
                                         <img src={state.survei[myref.current].foto_depan} className='img-fluid' />
                                     </div>
-                                    <div className='col-12 col-md-4'>
-                                        {/* <p className='mb-1'><small><strong>Foto Dalam Rumah</strong></small></p>
-                                        <img src={state.survei[myref.current].foto_dalamRumah} className='img-fluid' /> */}
-                                    </div>
-                                    <div className='col-12 col-md-4'>
+                                    {/* <div className='col-12 col-md-4'>
+                                        <p className='mb-1'><small><strong>Foto Dalam Rumah</strong></small></p>
+                                        <img src={state.survei[myref.current].foto_dalamRumah} className='img-fluid' />
+                                    </div> 
+                                    <div className='col-12 col-md-6'>
                                         <p className='mb-1'><small><strong>Foto Samping</strong></small></p>
                                         <img src={state.survei[myref.current].foto_samping} className='img-fluid' />
-                                    </div>
+                                    </div>*/}
                                 </div>
                                 <div className='row'>
                                     <div className='col-12 col-md-3'>
